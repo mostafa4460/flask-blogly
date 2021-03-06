@@ -1,12 +1,91 @@
 """Blogly application."""
 
-from flask import Flask
-from models import db, connect_db
+from flask import Flask, redirect, render_template, request
+from flask_debugtoolbar import DebugToolbarExtension
+from models import db, connect_db, User
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
+app.config['SECRET_KEY'] = 12345
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+debug = DebugToolbarExtension(app)
 
 connect_db(app)
 db.create_all()
+
+@app.route('/')
+def index():
+    """ Redirects to the users page """
+
+    return redirect('/users')
+
+@app.route('/users')
+def list_users():
+    """ Shows all users """
+
+    users = User.query.all()
+    return render_template('users.html', users=users)
+
+@app.route('/users/<int:user_id>')
+def show_user(user_id):
+    """ Shows detail page of a specific user """
+    
+    user = User.query.get_or_404(user_id)
+    return render_template('user.html', user=user)
+
+@app.route('/users/new')
+def show_add_user():
+    """ Shows the add a new user form """
+
+    return render_template('add-user.html')
+
+@app.route('/users/new', methods=['POST'])
+def add_user():
+    """ Adds new user to database then redirects to all users page """
+
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    image_url = request.form.get('image_url')
+    image_url = image_url.strip() if image_url else None
+
+    new_user = User(first_name=first_name, last_name=last_name, image_url=image_url)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return redirect('/users')
+
+@app.route('/users/<int:user_id>/edit')
+def show_edit_user(user_id):
+    """ Shows the edit page for a user with a specific id """
+
+    user = User.query.get_or_404(user_id)
+    return render_template('edit-user.html', user=user)
+
+@app.route('/users/<int:user_id>/edit', methods=["POST"])
+def edit_user(user_id):
+    """ Edits an already existing user then updates the DB """
+
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    image_url = request.form.get('image_url')
+    image_url = image_url.strip() if image_url else None
+
+    user = User.query.get(user_id)
+    user.first_name = first_name
+    user.last_name = last_name
+    user.image_url = image_url
+
+    db.session.add(user)
+    db.session.commit()
+
+    return redirect('/users')
+
+@app.route('/users/<int:user_id>/delete', methods=["POST"])
+def delete_user(user_id):
+    """ Deletes an existing user then removes from the DB """
+
+    User.query.filter_by(id=user_id).delete()
+    db.session.commit()
+    return redirect('/users')

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}{{post.title}}{% endblock %}
+
+{% block main %}
+    <div class="mt-5 border border-light border-2 rounded p-4">
+        <h1>{{post.title}}</h1>
+        <p>{{post.content}}</p>
+        <p><em>By {{post.owner.first_name}} {{post.owner.last_name}}</em></p>
+        <a class="btn btn-outline-primary" href="/users/{{post.user_id}}">Cancel</a>
+        <a class="btn btn-primary" href="/posts/{{post.id}}/edit">Edit</a>
+        <form action="/posts/{{post.id}}/delete" method="POST" class="d-inline">
+            <button class="btn btn-danger">Delete</button>
+        </form>
+    </div>
+{% endblock %}

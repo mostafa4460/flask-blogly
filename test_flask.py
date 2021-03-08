@@ -1,7 +1,8 @@
 from unittest import TestCase
+from datetime import datetime
 
 from app import app
-from models import db, User
+from models import db, User, Post
 
 # Use the testing DB
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly_test'
@@ -18,8 +19,9 @@ class UserViewsTestCase(TestCase):
     """ Tests for the User views """
 
     def setUp(self):
-        """ Add a sample user before each view """
+        """ Add a sample user and post before each view """
 
+        Post.query.delete()
         User.query.delete()
 
         # no image_url attr so we can test for default image
@@ -27,8 +29,12 @@ class UserViewsTestCase(TestCase):
         db.session.add(user)
         db.session.commit()
 
-        self.user_id = user.id
+        post = Post(title="Test Post", content="This is a test post", user_id=user.id)
+        db.session.add(post)
+        db.session.commit()
 
+        self.user_id = user.id
+        self.post_id = post.id
 
     def tearDown(self):
         """ Cleanup (rollback) any fouled transactions """
@@ -53,7 +59,7 @@ class UserViewsTestCase(TestCase):
             html = resp.get_data(as_text=True)
 
             self.assertEqual(resp.status_code, 200)
-            self.assertIn('<h1 class="pt-5">John Doe</h1>', html)
+            self.assertIn('<h1>John Doe</h1>', html)
 
     def test_add_user(self):
         """ Tests the adding of a new user """
@@ -78,3 +84,49 @@ class UserViewsTestCase(TestCase):
 
             # Tests for default image_url
             self.assertIn('<input type="text" class="form-control mb-3" value="https://community.swordsandravens.net/ext/dark1/memberavatarstatus/image/avatar.png" name="image_url">', html)
+
+    def test_add_post(self):
+        """ Tests the adding of a new post """
+
+        with app.test_client() as client:
+            d = {"title": "new post", "content": "adding a new post!", "user_id": self.user_id}
+            resp = client.post(f'/users/{self.user_id}/posts/new', data=d, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('new post', html)
+            self.assertIn('Test Post', html)
+
+    def test_show_post(self):
+        """ Tests the post details route """
+
+        with app.test_client() as client:
+            resp = client.get(f'/posts/{self.post_id}')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('This is a test post', html)
+    
+    def test_edit_post(self):
+        """ Tests the editing of a post """
+
+        with app.test_client() as client:
+            d = {"title": "Edited post", "content": ""}
+            resp = client.post(f"/posts/{self.post_id}/edit", data=d, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Edited post", html)
+
+    def test_delete_post(self):
+        """ Tests the deletion of a post """
+
+        with app.test_client() as client:
+            resp = client.post(f'/posts/{self.post_id}/delete', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertNotIn('This is a test post', html)
+
+            # Test that it was removed from the DB as well
+            self.assertIsNone(Post.query.get(self.post_id))

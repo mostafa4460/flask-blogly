@@ -7,7 +7,7 @@ html, body, .container {
     height: 200px;
 }
 
-#add-user-form, #edit-user-form {
+#add-user-form, #edit-user-form, #add-post-form, #edit-post-form {
     width: 50%;
     margin-left: 20px;
 }

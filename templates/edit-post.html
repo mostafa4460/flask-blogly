@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Edit Post{% endblock %}
+
+{% block main %}
+    <h1 class="display-1">Edit Post</h1>
+    <form id="edit-post-form" action="/posts/{{post.id}}/edit" method="POST" class="mt-4">
+        <label for="title" class="form-label"><b>Title</b></label>
+        <input type="text" class="form-control mb-3" value="{{post.title}}" name="title" maxlength="50" required>
+
+        <label for="content" class="form-label"><b>Content</b></label>
+        <textarea class="form-control mb-3" name="content" rows="4" cols="50">{{post.content}}</textarea>
+
+        <a href="/posts/{{post.id}}" class="btn btn-danger float-end">Cancel</a>
+        <button class="btn btn-success float-end me-1">Edit</button>
+    </form>
+{% endblock %}

@@ -2,10 +2,27 @@
 {% block title %}{{user.first_name}} {{user.last_name}}{% endblock %}
 
 {% block main %}
-    <form action="/users/{{user.id}}/delete" method="POST" class="mt-4">
-        <img id="profile-img" class="me-4 rounded float-start" src="{{user.image_url}}" alt="profile-image">
-        <h1 class="pt-5">{{user.first_name}} {{user.last_name}}</h1>
-        <a href="/users/{{user.id}}/edit" class="btn btn-primary">Edit</a>
-        <button class="btn btn-danger">Delete</button>
-    </form>
+    <div class="row mt-4">
+        <div class="col-3 " style="width: 200px; height:200px;">
+            <img id="profile-img" class="rounded float-start" src="{{user.image_url}}" alt="profile-image">
+        </div>
+
+        <div class="col-9 ms-4">
+            <h1>{{user.first_name}} {{user.last_name}}</h1>
+            <a href="/users/{{user.id}}/edit" class="btn btn-primary">Edit</a>
+            <form action="/users/{{user.id}}/delete" method="POST" class="d-inline">
+                <button class="btn btn-danger">Delete</button>
+            </form>
+            <h1 class="mt-4">Posts</h1>
+            {% if posts %}
+                <ul>
+                    {% for post in posts %}
+                        <li><a style="text-decoration: none;" href="/posts/{{post.id}}">{{post.title}}</a></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <a href="/users/{{user.id}}/posts/new" class="btn btn-primary">Add Post</a>
+            <a href="/users" class="btn btn-outline-secondary">Go Back</a>
+        </div>
+    </div>
 {% endblock %}

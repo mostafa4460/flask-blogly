@@ -7,7 +7,15 @@ html, body, .container {
     height: 200px;
 }
 
-#add-user-form, #edit-user-form, #add-post-form, #edit-post-form {
+#add-user-form, #edit-user-form, #add-post-form, #edit-post-form, #add-tag-form, #edit-tag-form {
     width: 50%;
     margin-left: 20px;
+}
+
+.tag {
+    font-size: 0.7rem;
+    display: inline-block;
+    padding: 1px 3px;
+    text-decoration: none;
+    margin-right: 1px;
 }
